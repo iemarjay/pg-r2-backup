@@ -1,0 +1,8 @@
+services:
+  backup:
+    image: ghcr.io/amp10-technologies/pg-r2-backup:latest
+    restart: unless-stopped
+    env_file:
+      - .env.backup
+    depends_on:
+      - postgres
