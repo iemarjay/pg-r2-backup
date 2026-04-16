@@ -10,7 +10,7 @@ Encrypted PostgreSQL backups to Cloudflare R2 with grandfather-father-son retent
   - `weekly/` → kept 35 days (written on Sundays UTC)
   - `monthly/` → kept 400 days (written on 1st of month UTC)
 - R2 API token should have **Object Write only** — no delete. R2 handles retention on its side, so a compromised backup container cannot erase history.
-- Optional healthcheck ping on success (e.g. healthchecks.io) for dead-man alerting.
+- Built-in Docker healthcheck: container is marked unhealthy if no successful backup within 25 hours.
 
 ## Usage
 
@@ -21,6 +21,11 @@ services:
     restart: unless-stopped
     env_file:
       - .env.backup
+    healthcheck:
+      test: ["/app/scripts/healthcheck.sh"]
+      interval: 6h
+      timeout: 5s
+      retries: 1
     depends_on:
       - postgres
 ```
@@ -43,13 +48,12 @@ See [`.env.backup.example`](.env.backup.example) for env vars.
 | `ENCRYPTION_PASSPHRASE` | ✅ | | gpg symmetric passphrase. Store separately from R2 creds. If lost, backups are unrecoverable. |
 | `BACKUP_CRON` | | `0 2 * * *` | Cron expression (container TZ is UTC by default) |
 | `BACKUP_NAME_PREFIX` | | `backup` | Filename prefix, e.g. `panelsuite` |
-| `HEALTHCHECK_URL` | | | Optional. Pinged on success (and `/start` on start). |
 | `TZ` | | `UTC` | |
 
 ## R2 setup (one-time)
 
 1. Create a bucket (e.g. `panelsuite-backups`).
-2. Create an **API Token**: permissions `Object Read & Write` scoped to that bucket. (Write-only isn't surfaced in the dashboard today — use a custom token with `Object Read, Object Write` but no `Object Delete`.)
+2. Create an **API Token**: permissions `Object Read & Write` scoped to that bucket.
 3. Add **Object Lifecycle rules** on the bucket:
    - Prefix `daily/` → expire after **7 days**
    - Prefix `weekly/` → expire after **35 days**
@@ -79,7 +83,7 @@ aws s3 ls s3://$R2_BUCKET/daily/ \
 
 - **Test restore at least quarterly.** Untested backups are theatre.
 - **Store `ENCRYPTION_PASSPHRASE` in two places** (e.g. 1Password + offline). Losing it = losing backups.
-- **Monitor the healthcheck.** Silent failure is the #1 way backups rot.
+- **Check `docker ps` regularly** — unhealthy backup container means backups stopped.
 - **Rotate R2 API tokens annually.**
 
 ## One-shot run (manual test)

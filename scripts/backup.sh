@@ -7,7 +7,6 @@ set -euo pipefail
 
 PG_PORT="${PG_PORT:-5432}"
 PREFIX="${BACKUP_NAME_PREFIX:-backup}"
-HEALTHCHECK_URL="${HEALTHCHECK_URL:-}"
 
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 DOW=$(date -u +%u)   # 1-7, Mon=1 Sun=7
@@ -24,14 +23,6 @@ export PGPASSWORD="$PG_PASSWORD"
 
 log() { echo "[$(date -u +%H:%M:%S)] $*"; }
 fail() { log "ERROR: $*"; rm -f "$TMP"; exit 1; }
-
-ping_healthcheck() {
-  [ -z "$HEALTHCHECK_URL" ] && return 0
-  local suffix="${1:-}"
-  curl -fsS -m 10 --retry 3 -o /dev/null "${HEALTHCHECK_URL}${suffix}" || log "healthcheck ping failed (non-fatal)"
-}
-
-ping_healthcheck "/start" || true
 
 log "Dumping ${PG_DATABASE} from ${PG_HOST}:${PG_PORT}"
 pg_dump \
@@ -64,5 +55,5 @@ upload "daily/${FILE}"
 [ "$DOM" = "01" ] && upload "monthly/${FILE}"
 
 rm -f "$TMP"
+touch /app/last_success
 log "Backup complete"
-ping_healthcheck ""

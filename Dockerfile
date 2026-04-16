@@ -6,7 +6,6 @@ RUN apk add --no-cache \
       gnupg \
       dcron \
       bash \
-      curl \
       tzdata \
       ca-certificates
 
@@ -21,5 +20,8 @@ ENV BACKUP_CRON="0 2 * * *" \
     PG_PORT=5432 \
     BACKUP_NAME_PREFIX=backup \
     TZ=UTC
+
+HEALTHCHECK --interval=6h --timeout=5s --retries=1 \
+  CMD ["/app/scripts/healthcheck.sh"]
 
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

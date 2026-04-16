@@ -4,5 +4,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env.backup
+    healthcheck:
+      test: ["/app/scripts/healthcheck.sh"]
+      interval: 6h
+      timeout: 5s
+      retries: 1
     depends_on:
       - postgres
