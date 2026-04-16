@@ -26,7 +26,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/amp10-technologies/pg-r2-backup
+          images: ghcr.io/iemarjay/pg-r2-backup
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}

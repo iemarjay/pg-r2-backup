@@ -17,7 +17,7 @@ Encrypted PostgreSQL backups to Cloudflare R2 with grandfather-father-son retent
 ```yaml
 services:
   backup:
-    image: ghcr.io/amp10-technologies/pg-r2-backup:latest
+    image: ghcr.io/iemarjay/pg-r2-backup:latest
     restart: unless-stopped
     env_file:
       - .env.backup
@@ -62,7 +62,7 @@ Full restore to a target Postgres (which the container can reach):
 
 ```bash
 docker run --rm -it --env-file .env.backup \
-  ghcr.io/amp10-technologies/pg-r2-backup:latest \
+  ghcr.io/iemarjay/pg-r2-backup:latest \
   /app/scripts/restore.sh daily/panelsuite-20260416T020000Z.sql.gz.gpg
 ```
 
@@ -86,6 +86,6 @@ aws s3 ls s3://$R2_BUCKET/daily/ \
 
 ```bash
 docker run --rm --env-file .env.backup \
-  ghcr.io/amp10-technologies/pg-r2-backup:latest \
+  ghcr.io/iemarjay/pg-r2-backup:latest \
   /app/scripts/backup.sh
 ```
